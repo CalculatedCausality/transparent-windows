@@ -2,7 +2,12 @@ import ctypes
 import keyboard
 import json
 import os
+import sys
 import pygetwindow as gw
+
+# Set the working directory to the script's location
+script_directory = os.path.dirname(os.path.realpath(sys.argv[0]))
+os.chdir(script_directory)
 
 # Define constants
 TRANSPARENCY_SETTINGS_FILE = "transparency_settings.json"
@@ -30,34 +35,32 @@ def set_window_transparency(hwnd, transparency):
 def get_active_window_hwnd():
     return ctypes.windll.user32.GetForegroundWindow()
 
-# Hotkey action
-
-
-def set_transparency_level(level):
-    hwnd = get_active_window_hwnd()
-    window_title = gw.getWindowsWithTitle(gw.getActiveWindowTitle())[0].title
-    transparency = int(MAX_TRANSPARENCY * (level / 10))
-    if level == 0:
-        transparency = MIN_TRANSPARENCY
-    set_window_transparency(hwnd, transparency)
-    transparency_settings[window_title] = transparency
-
-
-# Set hotkeys
-for i in range(10):
-    keyboard.add_hotkey(
-        f"ctrl+alt+shift+{i}", set_transparency_level, args=(i,))
-
-# Save transparency settings on exit
+# Function to save transparency settings
 
 
 def save_settings():
     with open(TRANSPARENCY_SETTINGS_FILE, "w") as f:
         json.dump(transparency_settings, f)
 
+# Hotkey action
 
-# Save settings and exit
-keyboard.add_hotkey("ctrl+alt+shift+q", save_settings)
+
+def set_transparency_level(level):
+    hwnd = get_active_window_hwnd()
+    window_title = gw.getWindowsWithTitle(gw.getActiveWindowTitle())[0].title
+    if level == 0:
+        transparency = MAX_TRANSPARENCY
+    else:
+        transparency = int(MAX_TRANSPARENCY * (level / 10))
+    set_window_transparency(hwnd, transparency)
+    transparency_settings[window_title] = transparency
+    save_settings()  # Save settings automatically after changing transparency
+
+
+# Set hotkeys
+for i in range(10):
+    keyboard.add_hotkey(
+        f"ctrl+alt+shift+{i}", set_transparency_level, args=(i,))
 
 # Restore window transparency
 for window_title, transparency in transparency_settings.items():
