@@ -1,9 +1,12 @@
+import time
+import threading
 import ctypes
 import keyboard
 import json
 import os
 import sys
 import pygetwindow as gw
+import win32gui
 
 # Set the working directory to the script's location
 script_directory = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -62,11 +65,26 @@ for i in range(10):
     keyboard.add_hotkey(
         f"ctrl+alt+shift+{i}", set_transparency_level, args=(i,))
 
-# Restore window transparency
-for window_title, transparency in transparency_settings.items():
-    windows = gw.getWindowsWithTitle(window_title)
-    if windows:
-        set_window_transparency(windows[0].hwnd, transparency)
+
+# Function to monitor active window and restore transparency
+def monitor_active_window():
+    last_hwnd = None
+    while True:
+        hwnd = get_active_window_hwnd()
+        if hwnd != last_hwnd:
+            last_hwnd = hwnd
+            windows = gw.getWindowsWithTitle(gw.getActiveWindowTitle())
+            if windows:  # Check if the list is not empty
+                window_title = windows[0].title
+                transparency = transparency_settings.get(window_title)
+                if transparency is not None:
+                    set_window_transparency(hwnd, transparency)
+        time.sleep(0.1)
+
+
+# Start monitoring active window in a separate thread
+monitor_thread = threading.Thread(target=monitor_active_window, daemon=True)
+monitor_thread.start()
 
 # Keep the script running
 keyboard.wait()
