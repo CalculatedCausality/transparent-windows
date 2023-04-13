@@ -1,3 +1,5 @@
-
 transparency_settings.json
 *.pyc
+build/*
+dist/*
+main.spec
