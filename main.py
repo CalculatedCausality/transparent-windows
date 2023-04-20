@@ -27,7 +27,7 @@ def clear_saved_transparency(icon, item):
 # Create system tray icon menu
 menu = (
     pystray.MenuItem('Clear Saved Transparency', clear_saved_transparency),
-    pystray.MenuItem('Exit', sys.exit(0))
+    pystray.MenuItem('Exit', exit())
 )
 
 # Create system tray icon
